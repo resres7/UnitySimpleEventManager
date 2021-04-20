@@ -72,7 +72,7 @@ namespace SimpleEventManager.Action
         public bool Invoke()
         {
             if (!CheckConditions()) return false;
-            action.Invoke();
+            action?.Invoke();
             return true;
         }
 

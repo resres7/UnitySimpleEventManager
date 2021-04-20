@@ -3,6 +3,7 @@ using SimpleEventManager.Event;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace SimpleEventManager
 {
@@ -61,13 +62,47 @@ namespace SimpleEventManager
         /// <returns> Return true if GameEventID exists </returns>
         public static bool Containts(GameEventID id)
         {
-            bool result = false;
             foreach (var byStatuses in GameEvents.Values)
                 foreach (var gameEvent in byStatuses.Values)
                     if (gameEvent.ID.Equals(id))
                         return true;
-            return result;
+            return false;
         }
+
+        /// <summary>
+        /// Get remains time of GameEvent with passed ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Return remaints time span for end the GameEvent</returns>
+        public static TimeSpan RemainsTime(GameEventID id)
+        {
+            if (!GameEvents.ContainsKey(GameEventStatus.InProgress)) return default(TimeSpan);
+            if (!GameEvents[GameEventStatus.InProgress].ContainsKey(id)) return default(TimeSpan);
+            var gameEvent = GameEvents[GameEventStatus.InProgress][id];
+            return gameEvent.EndTime - CurrentTime;
+        }
+
+        public static GameAction AddGameAction(GameEventID id, ActionType actionType, params UnityAction[] actions)
+        {
+            var gameEvent = FindGameEvent(id);
+            if (gameEvent == null) return null;
+            if (actionType == ActionType.OnStart && gameEvent.Status != GameEventStatus.WaitToRegistration)
+            {
+                Debug.LogError($"Tried add new GameAction while GameElement with ID {id} already started.");
+                return null;
+            }
+            var newAction = new GameAction(actionType, actions);
+            gameEvent.AddActions(newAction);
+            return newAction;
+        }
+
+        public static bool RemoveGameAction(GameEventID id, GameAction gameAction)
+        {
+            var gameEvent = FindGameEvent(id);
+            if (gameEvent == null) return false;
+            return gameEvent.RemoveActions(gameAction);
+        }
+
 
 
         public static void CheckAllEvents()
@@ -82,7 +117,6 @@ namespace SimpleEventManager
                 }
                 GameEvents[GameEventStatus.WaitToEnd].Clear();
             }
-
             EventRegisterer.CheckStartTime();
         }
 
@@ -114,6 +148,15 @@ namespace SimpleEventManager
                 ActionExecuter.AttachGameEvent(gameEventBuffer);
 
             return true;
+        }
+
+        internal static GameEvent FindGameEvent(GameEventID id)
+        {
+            foreach (var byStatuses in GameEvents.Values)
+                foreach (var gameEvent in byStatuses.Values)
+                    if (gameEvent.ID.Equals(id))
+                        return gameEvent;
+            return null;
         }
 
         internal static bool Delete(GameEventID id)

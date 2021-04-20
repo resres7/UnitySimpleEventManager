@@ -17,7 +17,8 @@ namespace SimpleEventManager.Action
                     Coroutines.Add(gameEvent.SecondPerTick, CreateCoroutineTick(gameEvent.SecondPerTick));
                 Coroutines.TryGetValue(gameEvent.SecondPerTick, out var actionCoroutine);
 
-                gameEvent.GameActions[ActionType.OnStart].Invoke();
+                if (gameEvent.GameActions.ContainsKey(ActionType.OnStart))
+                    gameEvent.GameActions[ActionType.OnStart].Invoke();
 
                 actionCoroutine.IDsInProgress.Add(gameEvent.ID);
             }
@@ -50,8 +51,6 @@ namespace SimpleEventManager.Action
                     if (gameEvent.GameActions[ActionType.OnEnd].Invoke()) continue;
 
                     gameEvent.GameActions.TryGetValue(ActionType.OnEveryTick, out var action);
-                    Debug.Log(action);
-
                     action?.Invoke();
                 }
             }
