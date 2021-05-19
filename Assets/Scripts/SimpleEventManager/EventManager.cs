@@ -82,6 +82,19 @@ namespace SimpleEventManager
             return gameEvent.EndTime - CurrentTime;
         }
 
+        /// <summary>
+        /// Get end time of GameEvent with passed ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Return end time DateTime for end the GameEvent</returns>
+        public static DateTime GetEndingTime(GameEventID id)
+        {
+            if (!GameEvents.ContainsKey(GameEventStatus.InProgress)) return default(DateTime);
+            if (!GameEvents[GameEventStatus.InProgress].ContainsKey(id)) return default(DateTime);
+            var gameEvent = GameEvents[GameEventStatus.InProgress][id];
+            return gameEvent.EndTime;
+        }
+
         public static GameAction AddGameAction(GameEventID id, ActionType actionType, params UnityAction[] actions)
         {
             var gameEvent = FindGameEvent(id);
